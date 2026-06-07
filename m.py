@@ -28,22 +28,33 @@ def execute_python_code(code: str):
     try:
         exec(code, {})
         output = sys.stdout.getvalue()
-        return {"success": True, "output": output}
+        return {
+            "success": True,
+            "output": output
+        }
 
     except Exception:
-        return {"success": False, "output": traceback.format_exc()}
+        return {
+            "success": False,
+            "output": traceback.format_exc()
+        }
 
     finally:
         sys.stdout = old_stdout
 
 
 def extract_error_lines(tb: str):
-    lines = []
+    matches = re.findall(r'File "<string>", line (\d+)', tb)
 
-    for m in re.finditer(r'line (\d+)', tb):
-        lines.append(int(m.group(1)))
+    if matches:
+        return [int(matches[-1])]
 
-    return sorted(list(set(lines)))
+    return []
+
+
+@app.get("/")
+def home():
+    return {"message": "Code Interpreter API Running"}
 
 
 @app.post("/code-interpreter")
